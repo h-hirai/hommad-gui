@@ -1,6 +1,7 @@
 module Main where
 
 import qualified Graphics.Gloss as G
+import Graphics.Gloss.Interface.Pure.Game
 import qualified HomMad as Hom
 import HomMad (Color (..))
 
@@ -11,6 +12,12 @@ fromHomPoint :: Hom.Point -> G.Point
 fromHomPoint (row, col) =
     (fromIntegral (col - div Hom.boardSize 2) * gridWidth,
      fromIntegral (row - div Hom.boardSize 2) * (-gridWidth))
+
+toHomPoint :: G.Point -> Hom.Point
+toHomPoint (x, y) =
+    let row = round (y / (-gridWidth)) + (Hom.boardSize `div` 2)
+        col = round (x / gridWidth) + (Hom.boardSize `div` 2)
+    in (row, col)
 
 grid :: G.Picture
 grid = G.pictures $
@@ -30,13 +37,21 @@ showBoard b = G.pictures
               [showStone (Hom.boardRef b (row, col)) (row, col) |
                row <- [0..Hom.boardSize-1], col <- [0..Hom.boardSize-1]]
 
-showStone :: Hom.Color -> Hom.Point -> G.Picture
-showStone E _ = G.blank
-showStone c p = G.color (fromHomColor c)
-                $ uncurry G.translate (fromHomPoint p)
-                $ G.circleSolid (gridWidth * 0.4)
+showCircle :: (Float -> G.Picture) -> Hom.Color -> Hom.Point -> G.Picture
+showCircle _      E     _     = G.blank
+showCircle cir col point = G.color (fromHomColor col)
+                           $ uncurry G.translate (fromHomPoint point)
+                           $ cir (gridWidth * 0.4)
     where fromHomColor B = G.black
           fromHomColor W = G.white
+
+showStone :: Hom.Color -> Hom.Point -> G.Picture
+showStone = showCircle G.circleSolid
+
+showCursor :: Hom.GameStatus -> Hom.Point -> G.Picture
+showCursor st@Hom.GameStatus{Hom._turn=col} pt
+    | Hom.canPut st pt = showCircle (flip G.thickCircle 3) col pt
+    | otherwise        = blank
 
 backGroundColor :: G.Color
 backGroundColor = G.white
@@ -47,23 +62,25 @@ boardColor = G.greyN 0.7
 gridColor :: G.Color
 gridColor = backGroundColor
 
-testBoard :: Hom.Board
-testBoard = [[E, B, E, E, E, E, E, E, E]
-            ,[B, E, E, E, E, B, E, E, E]
-            ,[E, E, E, E, E, E, E, E, E]
-            ,[E, E, E, E, E, B, E, E, E]
-            ,[E, E, E, E, E, E, E, E, E]
-            ,[E, E, E, W, E, W, E, E, E]
-            ,[E, E, E, E, E, W, E, E, E]
-            ,[E, E, E, E, E, E, E, E, E]
-            ,[E, E, E, E, E, E, E, E, E]
-            ]
+displayBoard :: (Hom.GameStatus, Hom.Point) -> G.Picture
+displayBoard (st@Hom.GameStatus{Hom._board=b}, cursor) =
+    G.pictures [G.color boardColor $ board
+               ,G.color gridColor grid
+               ,showBoard b
+               ,showCursor st cursor
+               ]
+
+eventHandler :: Event -> (Hom.GameStatus, Hom.Point) ->
+                (Hom.GameStatus, Hom.Point)
+eventHandler (EventMotion coord) (st, _) = (st, toHomPoint coord)
+eventHandler _ w = w
 
 main :: IO ()
-main = G.display
+main = G.play
        (G.InWindow "HomMad GUI" (500, 500) (50, 50))
        backGroundColor
-       $ G.pictures [G.color boardColor $ board
-                    ,G.color gridColor grid
-                    ,showBoard testBoard
-                    ]
+       10
+       (Hom.GameStatus Hom.emptyBoard B 0 0 Nothing, (0, 0))
+       displayBoard
+       eventHandler
+       (\_ -> id)
