@@ -73,6 +73,9 @@ displayBoard (st@Hom.GameStatus{Hom._board=b}, cursor) =
 eventHandler :: Event -> (Hom.GameStatus, Hom.Point) ->
                 (Hom.GameStatus, Hom.Point)
 eventHandler (EventMotion coord) (st, _) = (st, toHomPoint coord)
+eventHandler (EventKey (MouseButton LeftButton) Up _ coord) (st, _) =
+    let pt = toHomPoint coord
+    in if Hom.canPut st pt then (Hom.putStone st pt, pt) else (st, pt)
 eventHandler _ w = w
 
 main :: IO ()
