@@ -2,8 +2,8 @@ module Main where
 
 import qualified Graphics.Gloss as G
 import Graphics.Gloss.Interface.Pure.Game
-import qualified HomMad as Hom
-import HomMad (Color (..))
+import qualified HomMad.Goban as Hom
+import HomMad.Goban (Color (..))
 
 gridWidth :: Float
 gridWidth = 30
