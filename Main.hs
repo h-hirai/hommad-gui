@@ -62,7 +62,9 @@ boardColor = G.greyN 0.7
 gridColor :: G.Color
 gridColor = backGroundColor
 
-displayBoard :: (Hom.GameStatus, Hom.Point) -> G.Picture
+type World = (Hom.GameStatus, Hom.Point)
+
+displayBoard :: World -> G.Picture
 displayBoard (st@Hom.GameStatus{Hom._board=b}, cursor) =
     G.pictures [G.color boardColor $ board
                ,G.color gridColor grid
@@ -70,8 +72,7 @@ displayBoard (st@Hom.GameStatus{Hom._board=b}, cursor) =
                ,showCursor st cursor
                ]
 
-eventHandler :: Event -> (Hom.GameStatus, Hom.Point) ->
-                (Hom.GameStatus, Hom.Point)
+eventHandler :: Event -> World -> World
 eventHandler (EventMotion coord) (st, _) = (st, toHomPoint coord)
 eventHandler (EventKey (MouseButton LeftButton) Up _ coord) (st, _) =
     let pt = toHomPoint coord
