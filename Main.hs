@@ -77,6 +77,8 @@ eventHandler (EventMotion coord) (st, _) = (st, toHomPoint coord)
 eventHandler (EventKey (MouseButton LeftButton) Up _ coord) (st, _) =
     let pt = toHomPoint coord
     in if Hom.canPut st pt then (Hom.putStone st pt, pt) else (st, pt)
+eventHandler (EventKey (MouseButton RightButton) Up _ _) (st, pt) =
+    (Hom.pass st, pt)
 eventHandler _ w = w
 
 main :: IO ()
