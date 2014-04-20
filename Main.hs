@@ -4,7 +4,7 @@ import qualified Graphics.Gloss as G
 import Graphics.Gloss.Interface.Pure.Game
 import qualified HomMad.Goban as Hom
 import HomMad.Goban (Color (..))
-import HomMad.AI (playout, randomSeq)
+import HomMad.AI (playout)
 
 gridWidth :: Float
 gridWidth = 30
@@ -81,7 +81,7 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ coord) (st, _) =
 eventHandler (EventKey (MouseButton RightButton) Up _ _) (st, pt) =
     (Hom.pass st, pt)
 eventHandler (EventKey (SpecialKey KeyEnter) Up _ _) (st, pt) =
-    (Hom.initGame{Hom._board=fst $ playout (randomSeq (fst pt)) st}, pt)
+    (Hom.initGame{Hom._board=playout (fst pt) st}, pt)
 eventHandler _ w = w
 
 main :: IO ()
