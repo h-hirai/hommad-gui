@@ -86,7 +86,7 @@ eventHandler _ w = w
 
 main :: IO ()
 main = G.play
-       (G.InWindow "HomMad GUI" (500, 500) (50, 50))
+       (G.InWindow "HomMad GUI" (700, 700) (50, 50))
        backGroundColor
        10
        (Hom.GameStatus Hom.emptyBoard B 0 0 Nothing, (0, 0))
