@@ -1,10 +1,11 @@
 module Main where
 
 import qualified Graphics.Gloss as G
-import Graphics.Gloss.Interface.Pure.Game
+import Graphics.Gloss.Interface.IO.Game
 import qualified HomMad.Goban as Hom
 import HomMad.Goban (Point (..), Color (..))
-import HomMad.AI (playout)
+import HomMad.AI (move)
+import System.Random (randomIO)
 
 gridWidth :: Float
 gridWidth = 30
@@ -66,31 +67,34 @@ gridColor = backGroundColor
 
 type World = (Hom.GameStatus, Hom.Coord)
 
-displayBoard :: World -> G.Picture
-displayBoard (st@Hom.GameStatus{Hom._board=b}, cursor) =
+displayBoard :: World -> IO G.Picture
+displayBoard (st@Hom.GameStatus{Hom._board=b}, cursor) = return $
     G.pictures [G.color boardColor $ board
                ,G.color gridColor grid
                ,showBoard b
                ,showCursor st cursor
                ]
 
-eventHandler :: Event -> World -> World
-eventHandler (EventMotion coord) (st, _) = (st, toHomCoord coord)
+eventHandler :: Event -> World -> IO World
+eventHandler (EventMotion coord) (st, _) = return (st, toHomCoord coord)
 eventHandler (EventKey (MouseButton LeftButton) Up _ coord) (st, _) =
     let pt = toHomCoord coord
-    in if Hom.canPut st pt then (Hom.putStone st pt, pt) else (st, pt)
+    in if Hom.canPut st pt
+       then do
+         seed <- randomIO
+         let st' = Hom.putStone st pt
+         return (Hom.putStone st' $ move seed st', pt)
+       else return (st, pt)
 eventHandler (EventKey (MouseButton RightButton) Up _ _) (st, pt) =
-    (Hom.pass st, pt)
-eventHandler (EventKey (SpecialKey KeyEnter) Up _ _) (st, pt) =
-    (playout (fst pt) st, pt)
-eventHandler _ w = w
+    return (Hom.pass st, pt)
+eventHandler _ w = return w
 
 main :: IO ()
-main = G.play
+main = playIO
        (G.InWindow "HomMad GUI" (700, 700) (50, 50))
        backGroundColor
        10
        (Hom.initGame, (0, 0))
        displayBoard
        eventHandler
-       (\_ -> id)
+       (\_ -> return)

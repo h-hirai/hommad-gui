@@ -19,6 +19,6 @@ executable hommad-gui
   main-is: Main.hs
   -- other-modules:
   -- other-extensions:
-  build-depends:       base >=4.6 && <4.7, gloss, hommad
+  build-depends:       base >=4.6 && <4.7, gloss, hommad, random
   -- hs-source-dirs:
   default-language:    Haskell2010
