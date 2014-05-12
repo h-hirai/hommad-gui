@@ -83,7 +83,11 @@ eventHandler (EventKey (MouseButton LeftButton) Up _ coord) (st, _) =
        then do
          seed <- randomIO
          let st' = Hom.putStone st pt
-         return (Hom.putStone st' $ move seed st', pt)
+             aiMove = move seed st'
+         putStrLn $ "player move is " ++ show pt
+         putStrLn $ "random seed is " ++ show seed
+         putStrLn $ "AI move is " ++ show aiMove
+         return (maybe (Hom.pass st') (Hom.putStone st') aiMove, pt)
        else return (st, pt)
 eventHandler (EventKey (MouseButton RightButton) Up _ _) (st, pt) =
     return (Hom.pass st, pt)
