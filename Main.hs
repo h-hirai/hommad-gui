@@ -11,24 +11,26 @@ gridWidth :: Float
 gridWidth = 30
 
 fromHomCoord :: Hom.Coord -> G.Point
-fromHomCoord (row, col) =
-    (fromIntegral (col - div Hom.boardSize 2) * gridWidth,
-     fromIntegral (row - div Hom.boardSize 2) * (-gridWidth))
+fromHomCoord pt =
+    let row = Hom.row pt - 1
+        col = Hom.col pt - 1
+    in (fromIntegral (col - div Hom.boardSize 2) * gridWidth,
+        fromIntegral (row - div Hom.boardSize 2) * (-gridWidth))
 
 toHomCoord :: G.Point -> Hom.Coord
 toHomCoord (x, y) =
     let row = round (y / (-gridWidth)) + (Hom.boardSize `div` 2)
         col = round (x / gridWidth) + (Hom.boardSize `div` 2)
-    in (row, col)
+    in Hom.coord (row+1, col+1)
 
 grid :: G.Picture
 grid = G.pictures $
-       [G.line [fromHomCoord (row, 0),
-                fromHomCoord (row, Hom.boardSize-1)]
-        | row <- [0..Hom.boardSize-1]] ++
-       [G.line [fromHomCoord (0, col),
-                fromHomCoord (Hom.boardSize-1, col)]
-        | col <- [0..Hom.boardSize-1]]
+       [G.line [fromHomCoord $ Hom.coord (row, 1),
+                fromHomCoord $ Hom.coord (row, Hom.boardSize)]
+        | row <- [1..Hom.boardSize]] ++
+       [G.line [fromHomCoord $ Hom.coord (1, col),
+                fromHomCoord $ Hom.coord (Hom.boardSize, col)]
+        | col <- [1..Hom.boardSize]]
 
 board :: G.Picture
 board = G.rectangleSolid halfOfSize halfOfSize
@@ -36,8 +38,10 @@ board = G.rectangleSolid halfOfSize halfOfSize
 
 showBoard :: Hom.Board Hom.Color -> G.Picture
 showBoard b = G.pictures
-              [showStone (Hom.boardRef b (row, col)) (row, col) |
-               row <- [0..Hom.boardSize-1], col <- [0..Hom.boardSize-1]]
+              [showStone (Hom.boardRef b pt) pt |
+               pt <- [Hom.coord (row, col) |
+                      row <- [1..Hom.boardSize],
+                      col <- [1..Hom.boardSize]]]
 
 showCircle :: (Float -> G.Picture) ->
               Hom.Point Hom.Color -> Hom.Coord -> G.Picture
@@ -98,7 +102,7 @@ main = playIO
        (G.InWindow "HomMad GUI" (700, 700) (50, 50))
        backGroundColor
        10
-       (Hom.initGame, (0, 0))
+       (Hom.initGame, Hom.coord (1, 1))
        displayBoard
        eventHandler
        (\_ -> return)
