@@ -21,7 +21,8 @@ toHomCoord :: G.Point -> Hom.Coord
 toHomCoord (x, y) =
     let row = round (y / (-gridWidth)) + (Hom.boardSize `div` 2)
         col = round (x / gridWidth) + (Hom.boardSize `div` 2)
-    in Hom.coord (row+1, col+1)
+    in Hom.coord (clip row + 1, clip col + 1)
+        where clip n = (-1) `max` n `min` (Hom.boardSize)
 
 grid :: G.Picture
 grid = G.pictures $
